@@ -14,13 +14,16 @@ PROJECT_NAME = "Movies Metadata from its Posters"
 DATASET_NAME = "ds0"
 
 
+def parse_genres(val):
+    return list(set([v for v in val.split('|') if v]))
+
 def download_file(url, local_path, logger, cur_image_index, total_images_count):
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
         total_size_in_bytes = int(r.headers.get('content-length', 0))
         progress = sly.Progress("Downloading [{}/{}] {!r}".format(cur_image_index,
                                                                   total_images_count,
-                                                                  sly.fs.get_file_name_with_ext(local_path)),
+                                                                  "Posters"),
                                 total_size_in_bytes, ext_logger=logger, is_size=True)
         with open(local_path, 'wb') as f:
             for chunk in r.iter_content(chunk_size=8192):
@@ -47,14 +50,14 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
         reader = csv.DictReader(f)
         for row in reader:
             movies_info.append(row)
-            tag_names.update(row["Genre"].split("|"))
+            tag_names.update(parse_genres(row["Genre"]))
+
 
     tags_arr = [sly.TagMeta(name=tag_name, value_type=sly.TagValueType.NONE) for tag_name in tag_names]
     project_meta = sly.ProjectMeta(tag_metas=sly.TagMetaCollection(items=tags_arr))
     api.project.update_meta(project.id, project_meta.to_json())
     movies_info_len = len(movies_info)
-    progress = sly.Progress("Processing {} dataset".format(DATASET_NAME), movies_info_len, sly.logger)
-    for batch_idx, batch in enumerate(sly._utils.batched((movies_info))):
+    for batch_idx, batch in enumerate(sly._utils.batched(movies_info)):
         image_paths = []
         image_names = []
         image_metas = []
@@ -82,7 +85,9 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
         cur_anns = []
         for image, csv_row in zip(images, batch):
             tags_arr = []
-            image_tags = csv_row["Genre"].split('|')
+            image_tags = parse_genres(csv_row["Genre"])
+            if len(image_tags) == 0:
+                continue
 
             for image_tag in image_tags:
                 tag_meta = project_meta.get_tag_meta(image_tag)
@@ -92,10 +97,10 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
             ann = sly.Annotation(img_size=(image.height, image.width), img_tags=tags_arr)
             cur_anns.append(ann)
 
-        img_ids = [x.id for x in images]
-        api.annotation.upload_anns(img_ids, cur_anns)
+        if len(cur_anns) > 0:
+            img_ids = [x.id for x in images]
+            api.annotation.upload_anns(img_ids, cur_anns)
 
-    progress.iters_done_report(len(batch))
     api.task.set_output_project(task_id, project.id, project.name)
     my_app.stop()
 
