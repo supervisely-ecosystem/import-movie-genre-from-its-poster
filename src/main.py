@@ -57,7 +57,8 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
     project_meta = sly.ProjectMeta(tag_metas=sly.TagMetaCollection(items=tags_arr))
     api.project.update_meta(project.id, project_meta.to_json())
     movies_info_len = len(movies_info)
-    for batch_idx, batch in enumerate(sly._utils.batched(movies_info)):
+    batch_size = 50
+    for batch_idx, batch in enumerate(sly._utils.batched(movies_info, batch_size)):
         image_paths = []
         image_names = []
         image_metas = []
@@ -67,9 +68,9 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
             local_path = os.path.join(storage_dir, image_name)
 
             try:
-                download_file(image_url, local_path, app_logger, batch_idx+idx, movies_info_len)
+                download_file(image_url, local_path, app_logger, batch_idx*batch_size+idx, movies_info_len)
             except Exception as e:
-                app_logger.warn(f"Couldn't download image:(row={batch_idx+idx}, url={image_url}", e)
+                app_logger.warn(f"Couldn't download image:(row={batch_idx*batch_size+idx}, url={image_url}", e)
                 continue
 
             image_paths.append(local_path)
@@ -96,11 +97,12 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
 
             tags_arr = sly.TagCollection(items=tags_arr)
             ann = sly.Annotation(img_size=(image.height, image.width), img_tags=tags_arr)
-            cur_anns.append(ann)
+            cur_anns.append((image.id, ann))
 
         if len(cur_anns) > 0:
-            img_ids = [x.id for x in images]
-            api.annotation.upload_anns(img_ids, cur_anns)
+            img_ids = [img_id for img_id, ann in cur_anns]
+            anns = [ann for img_id, ann in cur_anns]
+            api.annotation.upload_anns(img_ids, anns)
 
     api.task.set_output_project(task_id, project.id, project.name)
     my_app.stop()
