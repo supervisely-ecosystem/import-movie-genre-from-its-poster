@@ -1,0 +1,18 @@
+{
+  "name": "Import Movie genre from its poster",
+  "type": "app",
+  "categories": [
+    "import",
+    "public data"
+  ],
+  "description": "Import Movie genre from its poster dataset",
+  "docker_image": "supervisely/base-py-sdk:6",
+  "main_script": "src/main.py",
+  "task_location": "workspace_tasks",
+  "headless": true,
+  "icon": "https://i.imgur.com/pz3eSzx.png",
+  "icon_background": "#FFFFFF",
+  "context_menu": {
+    "target": ["files_file"] 
+  }
+}
