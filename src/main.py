@@ -57,6 +57,7 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
     project_meta = sly.ProjectMeta(tag_metas=sly.TagMetaCollection(items=tags_arr))
     api.project.update_meta(project.id, project_meta.to_json())
     movies_info_len = len(movies_info)
+    movies_info_len_digits = len(str(movies_info_len))
     batch_size = 50
     for batch_idx, batch in enumerate(sly._utils.batched(movies_info, batch_size)):
         image_paths = []
@@ -64,7 +65,9 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
         image_metas = []
         for idx, csv_row in enumerate(batch):
             image_url = csv_row["Poster"]
-            image_name = sly.fs.get_file_name_with_ext(image_url)
+            cur_img_ext = os.path.splitext(image_url)[1]
+            cur_img_idx = str(batch_idx * batch_size + idx + 1).rjust(movies_info_len_digits, '0')
+            image_name = f"{cur_img_idx}{cur_img_ext}"
             local_path = os.path.join(storage_dir, image_name)
 
             try:
