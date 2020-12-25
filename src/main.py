@@ -68,7 +68,8 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
 
             try:
                 download_file(image_url, local_path, app_logger, batch_idx+idx, movies_info_len)
-            except requests.exceptions.HTTPError as e:
+            except Exception as e:
+                app_logger.warn(f"Couldn't download image:(row={batch_idx+idx}, url={image_url}", e)
                 continue
 
             image_paths.append(local_path)
