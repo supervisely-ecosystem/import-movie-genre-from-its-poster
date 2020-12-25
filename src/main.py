@@ -13,25 +13,20 @@ INPUT_FILE = os.environ['modal.state.slyFile']
 PROJECT_NAME = "Movies Metadata from its Posters"
 DATASET_NAME = "ds0"
 
-USE_TAG_VALUE = True
 
-
-def upload_valid_links(api, dataset_id, names, urls):
-    try:
-        api.image.upload_links(dataset_id, names, urls)
-    except requests.exceptions.HTTPError as e:
-        data = e.response.json()
-
-        invalid_names_set = set([img["name"] for img in data['details']])
-        invalid_urls_set = set([img["link"] for img in data['details']])
-
-        valid_names = [v for v in names if v not in invalid_names_set]
-        valid_urls = [v for v in urls if v not in invalid_urls_set]
-
-        if len(valid_names) > 0:
-          return api.image.upload_links(dataset_id, valid_names, valid_urls)
-
-        return []
+def download_file(url, local_path, logger, cur_image_index, total_images_count):
+    with requests.get(url, stream=True) as r:
+        r.raise_for_status()
+        total_size_in_bytes = int(r.headers.get('content-length', 0))
+        progress = sly.Progress("Downloading [{}/{}] {!r}".format(cur_image_index,
+                                                                  total_images_count,
+                                                                  sly.fs.get_file_name_with_ext(local_path)),
+                                total_size_in_bytes, ext_logger=logger, is_size=True)
+        with open(local_path, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+                progress.iters_done_report(len(chunk))
+    return local_path
 
 
 @my_app.callback("transform")
@@ -45,52 +40,53 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
     local_file = os.path.join(storage_dir, sly.fs.get_file_name_with_ext(INPUT_FILE))
     api.file.download(TEAM_ID, INPUT_FILE, local_file)
 
-    if USE_TAG_VALUE:
-        val_type = sly.TagValueType.ANY_STRING
-    else:
-        val_type = sly.TagValueType.NONE
 
-    tag_names = ["Genre", "Title", "imdbId", "IMDB Score"]
-    tags_arr = [sly.TagMeta(name=tag_name, value_type=val_type) for tag_name in tag_names]
-
-    project_meta = sly.ProjectMeta(tag_metas=sly.TagMetaCollection(items=tags_arr))
-    api.project.update_meta(project.id, project_meta.to_json())
-
-    movies_info = {}
+    tag_names = set()
+    movies_info = []
     with open(local_file, encoding="ISO-8859-1") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            movies_info[row["Poster"]] = row
+            movies_info.append(row)
+            tag_names.update(row["Genre"].split("|"))
 
-    progress = sly.Progress("Processing {} dataset".format(DATASET_NAME), len(movies_info), sly.logger)
-    for batch in sly._utils.batched(list(movies_info.values())):
-        image_urls = []
+    tags_arr = [sly.TagMeta(name=tag_name, value_type=sly.TagValueType.NONE) for tag_name in tag_names]
+    project_meta = sly.ProjectMeta(tag_metas=sly.TagMetaCollection(items=tags_arr))
+    api.project.update_meta(project.id, project_meta.to_json())
+    movies_info_len = len(movies_info)
+    progress = sly.Progress("Processing {} dataset".format(DATASET_NAME), movies_info_len, sly.logger)
+    for batch_idx, batch in enumerate(sly._utils.batched((movies_info))):
+        image_paths = []
         image_names = []
+        image_metas = []
         for idx, csv_row in enumerate(batch):
             image_url = csv_row["Poster"]
-            image_urls.append(image_url)
             image_name = sly.fs.get_file_name_with_ext(image_url)
+            local_path = os.path.join(storage_dir, image_name)
+
+            try:
+                download_file(image_url, local_path, app_logger, batch_idx+idx, movies_info_len)
+            except requests.exceptions.HTTPError as e:
+                continue
+
+            image_paths.append(local_path)
             image_names.append(image_name)
+            image_metas.append({
+                "Title": csv_row["Title"],
+                "imdbId": csv_row["imdbId"],
+                "IMDB Score": csv_row["IMDB Score"],
+                "Imdb Link": csv_row["Imdb Link"]
+            })
 
-        app_logger.info("Processing [{}/{}]: {!r}".format(idx, len(batch), image_urls))
-        images = upload_valid_links(api, dataset.id, image_names, image_urls)
-
+        app_logger.info("Processing [{}/{}]: {!r}".format(batch_idx, len(batch), image_paths))
+        images = api.image.upload_paths(dataset.id, image_names, image_paths, metas=image_metas)
         cur_anns = []
-        for image in images:
-            csv_row = movies_info[image.link]
+        for image, csv_row in zip(images, batch):
             tags_arr = []
-            for tag_name in tag_names:
-                if tag_name == "Genre":
-                    image_tags = csv_row[tag_name].split('|')
-                else:
-                    image_tags = [csv_row[tag_name]]
+            image_tags = csv_row["Genre"].split('|')
 
-                tag_meta = project_meta.get_tag_meta(tag_name)
-                if USE_TAG_VALUE:
-                   for tag in image_tags:
-                       tags_arr.append(sly.Tag(tag_meta, value=tag))
-                else:
-                    tags_arr.append(sly.Tag(tag_meta))
+            for image_tag in image_tags:
+                tag_meta = project_meta.get_tag_meta(image_tag)
+                tags_arr.append(sly.Tag(tag_meta))
 
             tags_arr = sly.TagCollection(items=tags_arr)
             ann = sly.Annotation(img_size=(image.height, image.width), img_tags=tags_arr)
