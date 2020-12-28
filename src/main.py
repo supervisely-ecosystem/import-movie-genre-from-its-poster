@@ -17,20 +17,15 @@ DATASET_NAME = "ds0"
 def parse_genres(val):
     return list(set([v for v in val.split('|') if v]))
 
+
 def download_file(url, local_path, logger, cur_image_index, total_images_count):
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
-        total_size_in_bytes = int(r.headers.get('content-length', 0))
-        progress = sly.Progress("Downloading [{}/{}] {!r}".format(cur_image_index,
-                                                                  total_images_count,
-                                                                  "Posters"),
-                                total_size_in_bytes, ext_logger=logger, is_size=True)
         with open(local_path, 'wb') as f:
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
-                progress.iters_done_report(len(chunk))
-    return local_path
 
+    return local_path
 
 @my_app.callback("transform")
 @sly.timeit
@@ -59,6 +54,8 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
     movies_info_len = len(movies_info)
     movies_info_len_digits = len(str(movies_info_len))
     batch_size = 50
+
+    progress = sly.Progress('Uploading images', movies_info_len, app_logger)
     for batch_idx, batch in enumerate(sly._utils.batched(movies_info, batch_size)):
         image_paths = []
         image_names = []
@@ -72,8 +69,8 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
 
             try:
                 download_file(image_url, local_path, app_logger, batch_idx*batch_size+idx, movies_info_len)
-            except Exception as e:
-                app_logger.warn(f"Couldn't download image:(row={batch_idx*batch_size+idx}, url={image_url}", e)
+            except:
+                app_logger.warn(f"Couldn't download image:(row={batch_idx*batch_size+idx}, url={image_url}")
                 continue
 
             image_paths.append(local_path)
@@ -87,6 +84,7 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
 
         app_logger.info("Processing [{}/{}]: {!r}".format(batch_idx, len(batch), image_paths))
         images = api.image.upload_paths(dataset.id, image_names, image_paths, metas=image_metas)
+
         cur_anns = []
         for image, csv_row in zip(images, batch):
             tags_arr = []
@@ -107,6 +105,7 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
             anns = [ann for img_id, ann in cur_anns]
             api.annotation.upload_anns(img_ids, anns)
 
+    progress.iters_done_report()
     api.task.set_output_project(task_id, project.id, project.name)
     my_app.stop()
 
