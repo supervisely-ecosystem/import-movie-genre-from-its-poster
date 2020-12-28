@@ -105,7 +105,7 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
             anns = [ann for img_id, ann in cur_anns]
             api.annotation.upload_anns(img_ids, anns)
 
-    progress.iters_done_report(len(batch))
+        progress.iters_done_report(len(batch))
     api.task.set_output_project(task_id, project.id, project.name)
     my_app.stop()
 
