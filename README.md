@@ -1,6 +1,6 @@
 <div align="center" markdown>
 
-<img src="https://i.imgur.com/I3gDQn7.png"/>
+<img src="https://i.imgur.com/e2zD7mL.png"/>
 
 # Movie Genre from its Poster
 
@@ -35,10 +35,10 @@ Application imports [kaggle dataset](https://www.kaggle.com/neha1703/movie-genre
 **Step 1**: Add app to your team from Ecosystem if it is not there. Application will be added to `Current Team`->`PLugins & Apps` page.
 
 **Step 2**: Go to `Current Team`->`Files` page, right-click on `MovieGenre.csv` file and choose `Run App`->`Import Movie genre from its poster`.
-<img src="https://i.imgur.com/qlEcP2t.png"/> 
+<img src="https://i.imgur.com/wg9pAzr.png"/> 
 
 **Note**: It may take some time to download and process all images
 
 **Note**: Application will result in the supervisely project named: `Movies Metadata from its Posters`, with 37315 images in the dataset.
-<img src="https://i.imgur.com/1d5scxy.png"/>
+<img src="https://i.imgur.com/MT1sMfT.png"/>
 
