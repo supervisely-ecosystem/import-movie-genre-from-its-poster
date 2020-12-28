@@ -82,9 +82,7 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
                 "Imdb Link": csv_row["Imdb Link"]
             })
 
-        app_logger.info("Processing [{}/{}]: {!r}".format(batch_idx, len(batch), image_paths))
         images = api.image.upload_paths(dataset.id, image_names, image_paths, metas=image_metas)
-
         cur_anns = []
         for image, csv_row in zip(images, batch):
             tags_arr = []
@@ -105,7 +103,7 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
             anns = [ann for img_id, ann in cur_anns]
             api.annotation.upload_anns(img_ids, anns)
 
-        progress.iters_done_report(len(batch))
+            progress.iters_done_report(len(batch))
     api.task.set_output_project(task_id, project.id, project.name)
     my_app.stop()
 
