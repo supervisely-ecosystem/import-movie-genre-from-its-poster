@@ -32,7 +32,7 @@ Application imports [kaggle dataset](https://www.kaggle.com/neha1703/movie-genre
 
 
 ## How To Run 
-**Step 1**: Add app to your team from Ecosystem if it is not there. Application will be added to `Current Team`->`PLugins & Apps` page.
+**Step 1**: Add app to your team from Ecosystem if it is not there. Application will be added to `Current Team`->`Plugins & Apps` page.
 
 **Step 2**: Go to `Current Team`->`Files` page, right-click on `MovieGenre.csv` file and choose `Run App`->`Import Movie genre from its poster`.
 <img src="https://i.imgur.com/wg9pAzr.png"/> 
