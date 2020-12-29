@@ -10,7 +10,7 @@ TEAM_ID = int(os.environ['context.teamId'])
 WORKSPACE_ID = int(os.environ['context.workspaceId'])
 
 INPUT_FILE = os.environ['modal.state.slyFile']
-PROJECT_NAME = "Movies Metadata from its Posters"
+PROJECT_NAME = "Movie genre from its poster"
 DATASET_NAME = "ds0"
 
 
