@@ -1,11 +1,11 @@
 {
-  "name": "Import Movie genre from its poster",
+  "name": "Movie genre from its poster",
   "type": "app",
   "categories": [
     "import",
     "public data"
   ],
-  "description": "Import Movie genre from its poster dataset",
+  "description": "Application imports kaggle dataset "Movie genre from its poster" as supervisely project",
   "docker_image": "supervisely/base-py-sdk:6",
   "main_script": "src/main.py",
   "task_location": "workspace_tasks",
