@@ -60,6 +60,7 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
         image_paths = []
         image_names = []
         image_metas = []
+        csv_rows = []
         for idx, csv_row in enumerate(batch):
             image_url = csv_row["Poster"]
             cur_img_ext = os.path.splitext(image_url)[1]
@@ -73,6 +74,7 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
                 app_logger.warn(f"Couldn't download image:(row={batch_idx*batch_size+idx}, url={image_url}")
                 continue
 
+            csv_rows.append(csv_row)
             image_paths.append(local_path)
             image_names.append(image_name)
             image_metas.append({
@@ -84,7 +86,7 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
 
         images = api.image.upload_paths(dataset.id, image_names, image_paths, metas=image_metas)
         cur_anns = []
-        for image, csv_row in zip(images, batch):
+        for image, csv_row in zip(images, csv_rows):
             tags_arr = []
             image_tags = parse_genres(csv_row["Genre"])
             if len(image_tags) == 0:
