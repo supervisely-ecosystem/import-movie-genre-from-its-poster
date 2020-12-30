@@ -81,7 +81,7 @@ def transform(api: sly.Api, task_id, context, state, app_logger):
                 "Title": csv_row["Title"],
                 "imdbId": csv_row["imdbId"],
                 "IMDB Score": csv_row["IMDB Score"],
-                "Imdb Link": csv_row["Imdb Link"]
+                "Imdb Link": csv_row["Imdb Link"].replace('title/tt', 'title/tt0')
             })
 
         images = api.image.upload_paths(dataset.id, image_names, image_paths, metas=image_metas)
