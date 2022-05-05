@@ -13,6 +13,9 @@
   "icon": "https://i.imgur.com/lBfHJAi.png",
   "icon_background": "#FFFFFF",
   "context_menu": {
-    "target": ["files_file"] 
-  }
+    "target": [
+      "files_file"
+    ]
+  },
+  "poster": "https://i.imgur.com/FVJg3fp.png"
 }
