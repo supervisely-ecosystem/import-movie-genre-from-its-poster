@@ -1,6 +1,6 @@
 <div align="center" markdown>
 
-<img src="https://i.imgur.com/FVJg3fp.png"/>
+<img src="https://user-images.githubusercontent.com/48245050/182849483-7c744901-6ee6-4c53-9423-01b17c02cbfd.jpg"/>
 
 # Movie genre from its poster
 
