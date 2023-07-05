@@ -10,7 +10,7 @@
   "main_script": "src/main.py",
   "task_location": "workspace_tasks",
   "headless": true,
-  "icon": "https://i.imgur.com/lBfHJAi.png",
+  "icon": "https://github.com/supervisely-ecosystem/import-movie-genre-from-its-poster/assets/48245050/5465e494-3dc9-4c0e-93e8-829d52aad8a6",
   "icon_background": "#FFFFFF",
   "context_menu": {
     "target": [
