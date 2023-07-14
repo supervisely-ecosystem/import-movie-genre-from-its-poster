@@ -6,7 +6,7 @@
     "images"
   ],
   "description": "Application imports kaggle dataset 'Movie genre from its poster' as supervisely project",
-  "docker_image": "supervisely/base-py-sdk:6.72.56",
+  "docker_image": "supervisely/base-py-sdk:6.72.70",
   "main_script": "src/main.py",
   "task_location": "workspace_tasks",
   "headless": true,
