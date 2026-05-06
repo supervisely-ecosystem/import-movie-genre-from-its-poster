@@ -1,6 +1,7 @@
 {
     "name": "Movie genre from its poster",
     "type": "app",
+    "instance_version": "6.15.60",
     "categories": [
         "import",
         "images"
