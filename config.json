@@ -1,22 +1,22 @@
 {
-    "name": "Movie genre from its poster",
-    "type": "app",
-    "instance_version": "6.15.60",
-    "categories": [
-        "import",
-        "images"
-    ],
-    "description": "Application imports kaggle dataset 'Movie genre from its poster' as supervisely project",
-    "docker_image": "supervisely/import-export:6.73.564",
-    "main_script": "src/main.py",
-    "task_location": "workspace_tasks",
-    "headless": true,
-    "icon": "https://i.imgur.com/lBfHJAi.png",
-    "icon_background": "#FFFFFF",
-    "context_menu": {
-        "target": [
-            "files_file"
-        ]
-    },
-    "poster": "https://user-images.githubusercontent.com/48245050/182849483-7c744901-6ee6-4c53-9423-01b17c02cbfd.jpg"
+  "name": "Movie genre from its poster",
+  "type": "app",
+  "instance_version": "6.15.60",
+  "categories": [
+    "import",
+    "images"
+  ],
+  "description": "Application imports kaggle dataset 'Movie genre from its poster' as supervisely project",
+  "docker_image": "supervisely/base-py-sdk-hardened:6.73.564",
+  "main_script": "src/main.py",
+  "task_location": "workspace_tasks",
+  "headless": true,
+  "icon": "https://i.imgur.com/lBfHJAi.png",
+  "icon_background": "#FFFFFF",
+  "context_menu": {
+    "target": [
+      "files_file"
+    ]
+  },
+  "poster": "https://user-images.githubusercontent.com/48245050/182849483-7c744901-6ee6-4c53-9423-01b17c02cbfd.jpg"
 }
